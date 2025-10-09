@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University GPA Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+        }
+        .btn:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.5);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .notification.success { background-color: #10b981; }
+        .notification.error { background-color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div id="notification-area" class="notification"></div>
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">University GPA Calculator</h1>
+            <p class="text-lg text-gray-600 mt-2">Manage students, courses, and grades to generate academic transcripts.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Management -->
+            <div class="space-y-8">
+                <!-- Add Student Card -->
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Add New Student</h2>
+                    <form id="student-form" class="space-y-4">
+                        <div>
+                            <label for="student-name" class="block font-medium mb-1">Student Name</label>
+                            <input type="text" id="student-name" placeholder="e.g., Jane Doe" required>
+                        </div>
+                        <button type="submit" class="btn w-full">Add Student</button>
+                    </form>
+                </div>
+
+                <!-- Add Course Card -->
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Add New Course</h2>
+                    <form id="course-form" class="space-y-4">
+                        <div>
+                            <label for="course-name" class="block font-medium mb-1">Course Name</label>
+                            <input type="text" id="course-name" placeholder="e.g., Computer Science 101" required>
+                        </div>
+                        <div>
+                            <label for="course-credits" class="block font-medium mb-1">Credits</label>
+                            <input type="number" id="course-credits" min="1" max="5" placeholder="e.g., 3" required>
+                        </div>
+                        <button type="submit" class="btn w-full">Add Course</button>
+                    </form>
+                </div>
+
+                <!-- Assign Grade Card -->
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Assign Grade</h2>
+                    <form id="grade-form" class="space-y-4">
+                        <div>
+                            <label for="grade-student" class="block font-medium mb-1">Select Student</label>
+                            <select id="grade-student" required><option value="">-- No Students Available --</option></select>
+                        </div>
+                        <div>
+                            <label for="grade-course" class="block font-medium mb-1">Select Course</label>
+                            <select id="grade-course" required><option value="">-- No Courses Available --</option></select>
+                        </div>
+                        <div>
+                            <label for="grade-value" class="block font-medium mb-1">Enter Grade</label>
+                            <input type="text" id="grade-value" placeholder="e.g., A, B+, C-" required>
+                        </div>
+                        <button type="submit" class="btn w-full">Assign Grade</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column: Transcripts and Tests -->
+            <div class="space-y-8">
+                <!-- Transcript Card -->
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Generate Transcript</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="transcript-student" class="block font-medium mb-1">Select Student to View</label>
+                            <select id="transcript-student" required><option value="">-- No Students Available --</option></select>
+                        </div>
+                        <div id="transcript-output" class="mt-4 p-4 border rounded-lg bg-gray-50 min-h-[200px]">
+                            <p class="text-gray-500 italic">Select a student to see their transcript.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit Tests Card -->
+                <div class="card">
+                    <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Automated System Tests</h2>
+                    <div class="space-y-4">
+                         <p class="text-gray-600">Verify system integrity by running automated checks for core functionalities.</p>
+                        <button id="run-tests-btn" class="btn btn-secondary w-full">Run Tests</button>
+                        <div id="test-results" class="mt-4 space-y-2 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA STORE ---
+            let students = [];
+            let courses = [];
+            let nextStudentId = 1;
+            let nextCourseId = 1;
+            
+            // --- CLASSES ---
+
+            /**
+             * Represents a Grade with validation and point conversion.
+             */
+            class Grade {
+                static gradePoints = {
+                    'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7,
+                    'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'F': 0.0
+                };
+
+                constructor(letterGrade) {
+                    const upperGrade = letterGrade.toUpperCase();
+                    if (!Grade.isValid(upperGrade)) {
+                        throw new Error(`Invalid grade: "${letterGrade}".`);
+                    }
+                    this.letter = upperGrade;
+                }
+
+                static isValid(letterGrade) {
+                    return letterGrade in this.gradePoints;
+                }
+
+                getPoint() {
+                    return Grade.gradePoints[this.letter];
+                }
+            }
+
+            /**
+             * Represents a Course with a name and credit value.
+             */
+            class Course {
+                constructor(id, name, credits) {
+                    this.id = id;
+                    this.name = name;
+                    this.credits = parseInt(credits, 10);
+                }
+            }
+
+            /**
+             * Represents a Student, manages their enrolled courses and calculates GPA.
+             */
+            class Student {
+                constructor(id, name) {
+                    this.id = id;
+                    this.name = name;
+                    this.enrolledCourses = []; // Stores { course: Course, grade: Grade }
+                }
+
+                addCourseGrade(course, gradeLetter) {
+                    try {
+                        const grade = new Grade(gradeLetter);
+                        // Avoid adding the same course twice
+                        if (this.enrolledCourses.some(c => c.course.id === course.id)) {
+                             showNotification(`Student ${this.name} is already enrolled in ${course.name}.`, 'error');
+                             return false;
+                        }
+                        this.enrolledCourses.push({ course, grade });
+                        return true;
+                    } catch (error) {
+                        showNotification(error.message, 'error');
+                        return false;
+                    }
+                }
+
+                calculateGPA() {
+                    if (this.enrolledCourses.length === 0) {
+                        return 0.0;
+                    }
+
+                    let totalPoints = 0;
+                    let totalCredits = 0;
+
+                    this.enrolledCourses.forEach(({ course, grade }) => {
+                        totalPoints += grade.getPoint() * course.credits;
+                        totalCredits += course.credits;
+                    });
+                    
+                    // Handle case with courses that have 0 total credits, though our form prevents this.
+                    if (totalCredits === 0) return 0.0;
+                    
+                    // Round to 3 decimal places
+                    return parseFloat((totalPoints / totalCredits).toFixed(3));
+                }
+            }
+
+            // --- DOM ELEMENTS ---
+            const studentForm = document.getElementById('student-form');
+            const courseForm = document.getElementById('course-form');
+            const gradeForm = document.getElementById('grade-form');
+            const studentNameInput = document.getElementById('student-name');
+            const courseNameInput = document.getElementById('course-name');
+            const courseCreditsInput = document.getElementById('course-credits');
+            const gradeStudentSelect = document.getElementById('grade-student');
+            const gradeCourseSelect = document.getElementById('grade-course');
+            const gradeValueInput = document.getElementById('grade-value');
+            const transcriptStudentSelect = document.getElementById('transcript-student');
+            const transcriptOutput = document.getElementById('transcript-output');
+            const runTestsBtn = document.getElementById('run-tests-btn');
+            const testResultsDiv = document.getElementById('test-results');
+
+            // --- EVENT LISTENERS ---
+            studentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = studentNameInput.value.trim();
+                if (name) {
+                    const newStudent = new Student(nextStudentId++, name);
+                    students.push(newStudent);
+                    studentNameInput.value = '';
+                    updateStudentSelects();
+                    showNotification(`Student "${name}" added successfully.`, 'success');
+                }
+            });
+
+            courseForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = courseNameInput.value.trim();
+                const credits = courseCreditsInput.value;
+                if (name && credits) {
+                    const newCourse = new Course(nextCourseId++, name, credits);
+                    courses.push(newCourse);
+                    courseNameInput.value = '';
+                    courseCreditsInput.value = '';
+                    updateCourseSelects();
+                    showNotification(`Course "${name}" added successfully.`, 'success');
+                }
+            });
+            
+            gradeForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const studentId = parseInt(gradeStudentSelect.value, 10);
+                const courseId = parseInt(gradeCourseSelect.value, 10);
+                const gradeLetter = gradeValueInput.value.trim();
+                
+                const student = students.find(s => s.id === studentId);
+                const course = courses.find(c => c.id === courseId);
+
+                if (student && course && gradeLetter) {
+                    if(student.addCourseGrade(course, gradeLetter)){
+                        showNotification(`Grade assigned successfully to ${student.name}.`, 'success');
+                        gradeValueInput.value = '';
+                        // Refresh transcript if this student is selected
+                        if (parseInt(transcriptStudentSelect.value, 10) === studentId) {
+                            generateTranscript(student);
+                        }
+                    }
+                } else {
+                    showNotification('Please fill out all fields correctly.', 'error');
+                }
+            });
+
+            transcriptStudentSelect.addEventListener('change', () => {
+                const studentId = parseInt(transcriptStudentSelect.value, 10);
+                const student = students.find(s => s.id === studentId);
+                if (student) {
+                    generateTranscript(student);
+                } else {
+                    transcriptOutput.innerHTML = `<p class="text-gray-500 italic">Select a student to see their transcript.</p>`;
+                }
+            });
+
+            runTestsBtn.addEventListener('click', runUnitTests);
+
+            // --- UI UPDATE FUNCTIONS ---
+            function updateStudentSelects() {
+                const options = students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                gradeStudentSelect.innerHTML = options || '<option value="">-- Add a Student --</option>';
+                transcriptStudentSelect.innerHTML = options || '<option value="">-- Add a Student --</option>';
+                // After updating, trigger change to show first student's transcript if exists
+                if(students.length > 0){
+                    transcriptStudentSelect.dispatchEvent(new Event('change'));
+                } else {
+                     transcriptOutput.innerHTML = `<p class="text-gray-500 italic">Select a student to see their transcript.</p>`;
+                }
+            }
+
+            function updateCourseSelects() {
+                const options = courses.map(c => `<option value="${c.id}">${c.name} (${c.credits} credits)</option>`).join('');
+                gradeCourseSelect.innerHTML = options || '<option value="">-- Add a Course --</option>';
+            }
+            
+            function generateTranscript(student) {
+                let content = `
+                    <h3 class="text-xl font-bold">${student.name}</h3>
+                    <p class="text-sm text-gray-500 mb-4">Student ID: ${student.id}</p>
+                `;
+
+                if (student.enrolledCourses.length === 0) {
+                    content += `<p class="italic text-gray-600">No courses enrolled yet.</p>`;
+                } else {
+                    content += `
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-200">
+                                <tr>
+                                    <th class="p-2 font-semibold">Course</th>
+                                    <th class="p-2 font-semibold">Credits</th>
+                                    <th class="p-2 font-semibold">Grade</th>
+                                    <th class="p-2 font-semibold">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    student.enrolledCourses.forEach(({ course, grade }) => {
+                        content += `
+                            <tr class="border-b">
+                                <td class="p-2">${course.name}</td>
+                                <td class="p-2">${course.credits}</td>
+                                <td class="p-2">${grade.letter}</td>
+                                <td class="p-2">${grade.getPoint().toFixed(1)}</td>
+                            </tr>
+                        `;
+                    });
+                    content += `</tbody></table>`;
+                }
+                
+                content += `
+                    <div class="mt-4 pt-4 border-t-2 border-gray-300 text-right">
+                        <p class="text-lg font-bold">Cumulative GPA: <span class="text-blue-600">${student.calculateGPA()}</span></p>
+                    </div>
+                `;
+
+                transcriptOutput.innerHTML = content;
+            }
+
+            function showNotification(message, type) {
+                const notification = document.getElementById('notification-area');
+                notification.textContent = message;
+                notification.className = `notification ${type}`;
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            // --- UNIT TESTS ---
+            function runUnitTests() {
+                testResultsDiv.innerHTML = '';
+                let passCount = 0;
+                let testCount = 0;
+
+                function assert(condition, message) {
+                    testCount++;
+                    const resultClass = condition ? 'text-green-600' : 'text-red-600';
+                    const resultIcon = condition ? '✓' : '✗';
+                    if (condition) passCount++;
+                    const resultEl = document.createElement('div');
+                    resultEl.className = `p-2 rounded-md flex items-start ${condition ? 'bg-green-50' : 'bg-red-50'}`;
+                    resultEl.innerHTML = `<span class="mr-2 font-bold ${resultClass}">${resultIcon}</span> <span class="${resultClass}">${message}</span>`;
+                    testResultsDiv.appendChild(resultEl);
+                }
+
+                // Test 1: Accurate GPA calculation
+                const testStudent1 = new Student(999, 'Test Student 1');
+                const course1 = new Course(9991, 'Math', 3);
+                const course2 = new Course(9992, 'History', 4);
+                testStudent1.addCourseGrade(course1, 'A'); // 4.0 * 3 = 12 points
+                testStudent1.addCourseGrade(course2, 'B'); // 3.0 * 4 = 12 points
+                const expectedGPA = (12 + 12) / (3 + 4); // 24 / 7 = 3.42857...
+                const actualGPA = testStudent1.calculateGPA();
+                assert(Math.abs(actualGPA - expectedGPA) < 0.001, 'Test 1: GPA calculation is accurate.');
+
+                // Test 2: Invalid grade values are rejected
+                const testStudent2 = new Student(998, 'Test Student 2');
+                const course3 = new Course(9993, 'Art', 2);
+                const result = testStudent2.addCourseGrade(course3, 'Z'); // This should fail
+                assert(!result && testStudent2.enrolledCourses.length === 0, 'Test 2: Invalid grade "Z" was correctly rejected.');
+
+                // Test 3: Student with no courses returns GPA of 0
+                const testStudent3 = new Student(997, 'Test Student 3');
+                assert(testStudent3.calculateGPA() === 0.0, 'Test 3: Student with no courses has a GPA of 0.0.');
+
+                // Summary
+                const summaryEl = document.createElement('div');
+                const summaryClass = passCount === testCount ? 'text-green-700 bg-green-100' : 'text-red-700 bg-red-100';
+                summaryEl.className = `p-3 mt-4 font-bold rounded-md text-center ${summaryClass}`;
+                summaryEl.textContent = `Test Summary: ${passCount} / ${testCount} tests passed.`;
+                testResultsDiv.appendChild(summaryEl);
+            }
+            
+            // Initial UI population
+            updateStudentSelects();
+            updateCourseSelects();
+        });
+    </script>
+</body>
+</html>
